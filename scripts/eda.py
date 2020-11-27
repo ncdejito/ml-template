@@ -18,6 +18,12 @@ def check_nulls_and_outliers(df, columns = None):
     '''
     1. Find rows missing some values
     2. Find outliers
+
+    Args
+        df (pd.DataFrame): data to check
+        columns (list of str): subset of columns to check, can be None.
+    Returns
+        None
     '''
     if columns is None:
         columns = df.columns
@@ -38,7 +44,16 @@ def check_nulls_and_outliers(df, columns = None):
     sub_num.boxplot(figsize=(12,4))
 
 def correlations_to_label(df, label = None, cols = None, show_above = 0.7):
-    'Show correlations for `cols` in `df` with values above `show_above`'
+    '''Show correlations for `cols` in `df` with values above `show_above`
+    
+    Args
+        df (pd.DataFrame): data to check correlations on
+        label (str): column used as label for prediction problem
+        cols (list of str): columns to check correlation with label
+        show_above (float): filter shown correlations to above this threshold
+    Returns
+        (pd.DataFrame): table of correlations
+    '''
 
     if cols is None:
         cols = df.columns
@@ -62,6 +77,17 @@ def correlations_to_label(df, label = None, cols = None, show_above = 0.7):
             .query(f"pearson_r_abs > {show_above}"))
 
 def overlapping_histograms(df, feature = 'area', upper_bound = None, bins_ = 100):
+    '''Plot a graph of overlapping histograms for particular column in a dataframe
+
+    Args
+        df (pd.DataFrame): data to check
+        feature (str): column in df to plot
+        upper_bound (int): maximum value for plotting axis
+        bins_ (int): number of histogram splits
+    Returns:
+        None
+
+    '''
     # upper_bound = 1*1e-7
     types = list(df['type'].unique())
     if upper_bound == None: upper_bound = df[feature].quantile(0.95);
@@ -83,8 +109,24 @@ def overlapping_histograms(df, feature = 'area', upper_bound = None, bins_ = 100
     # plt.legend();
 
 def pairplot(df, category, cols = None):
+    '''Compares columns pairwise, adds a color based on category
+    
+    Args
+        df (pd.DataFrame): data used to plot
+        category (str): name of column to use for coloring data
+    Returns
+        None
+    '''
     sns.pairplot(df, hue = category)
 
 def scatter_wline(df, x, y):
+    '''Creates a scatterplot with fitted line
+    
+    Args
+        df (pd.DataFrame): data used to plot
+        x, y (str): columns used to plot
+    Returns
+        None
+    '''
     # positive correlation between price and avg postal price
     sns.lmplot(x=x, y=y, data=df)

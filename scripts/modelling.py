@@ -24,8 +24,7 @@ if problem_type == 'regression':
     clfs = [RandomForestRegressor(random_state=SEED)]#, Ridge(random_state=SEED) , LinearSVR()]
 
 def split(df, by = 'random', col = None):
-    '''
-    For results validation
+    '''For results validation, apply specific strategies
     
     Args
         col (str): time series or area column
@@ -41,7 +40,13 @@ def split(df, by = 'random', col = None):
         return _geo_split(df, col)
 
 def sk_pipeline(clf):
-    'Adds step that does scaling and one hot encoding'
+    '''Adds step that does scaling and one hot encoding
+    
+    Args
+        clf (sklearn classifier/Pipeline): classifier to build preprocessors for
+    Returns
+        (sklearn Pipeline): Pipeline which includes scaling and one hot encoding
+    '''
     global numerical_features, categorical_features
     categorical_transformer = Pipeline(steps=[('onehot', OneHotEncoder(handle_unknown='ignore', drop=None))])
     numerical_transformer = Pipeline(steps=[('scaler', RobustScaler())])
@@ -53,6 +58,16 @@ def sk_pipeline(clf):
     return Pipeline(steps=[('preprocessor', preprocessor),('classifier', clf)])
 
 def get_best_model(df, split_by = 'random', based_on = 'accuracy_score', model_path = 'model.pkl'):
+    '''Get best model based on classifiers defined in modelling.py
+
+    Args
+        df (pd.DataFrame): data to train model on
+        split_by (str): validation strategy, passed to split() function
+        based_on (str): name of scorer to use
+        model_path (str): where to save model
+    Returns
+        (sklearn pipeline): best model
+    '''
     print(f'Cross validation by {split_by}')
     cv = split(df, by = split_by)
 
@@ -72,7 +87,17 @@ def get_best_model(df, split_by = 'random', based_on = 'accuracy_score', model_p
     return clf_cv.best_estimator_
 
 def train(clf, df, train_size = 0.8, model_path = 'model.pkl'):
+    '''Run training using one train-test split
 
+    Args
+        clf (sklearn classifier): model to use for training
+        df (pd.DataFrame): data to use for fitting model
+        train_size (int): percentage of data to use for fitting model
+        model_path (str): path where model will be saved
+    Returns
+        (sklearn pipeline): trained model
+    
+    '''
     df = df.sample(frac = 1).reset_index(drop = True)
     split = int(floor(len(df)*train_size))
     X_train, y_train = df.loc[:split, features], df.loc[:split, target]
@@ -91,13 +116,29 @@ def train(clf, df, train_size = 0.8, model_path = 'model.pkl'):
     return pipe
 
 def predict(df, clf = None, model_path = 'model.pkl'):
+    '''Predict on data using classifier
+
+    Args
+        df (pd.DataFrame): data to predict on
+        clf (sklearn classifier): model to use for predicting
+        model_path (str): path where model is saved
+    Returns
+        (pd.DataFrame): predictions for df
+    '''
     X = df[features]
     if clf is None:
         clf = joblib.load(model_path)
     return clf.predict(X)
 
 def evaluate(y_true, y_pred):
-    'Calculates metrics of accuracy between actual values and model predicted values.'
+    '''Calculates metrics of accuracy between actual values and model predicted values.
+    
+    Args
+        y_true (list of int or str): actual labels
+        y_pred (list of int or str): predicted labels
+    Returns
+        (dict): accuracy metrics based on problem type
+    '''
     if problem_type == 'classification':
         return {
             'accuracy': accuracy_score(y_true, y_pred),
@@ -112,6 +153,16 @@ def evaluate(y_true, y_pred):
         }
 
 def error_by_subgroup(input_df, col, n = 3):
+    '''Calculates error by subgroup for analysis
+
+    Args
+        input_df (pd.DataFrame): dataframe to calculate errors for
+        col (str): column to divide into subgroups for error calculation
+        n (int): number of rows to limit output
+    Returns
+        df (pd.DataFrame): table of error results
+    
+    '''
     print('Acceptance for column: {}'.format(col))
     records = []
 

@@ -11,7 +11,17 @@ def _set(
     NUM_FILL = 0,
     SEED = 42
 ):
-    'Creates settings.py from settings_template.py, to be used by eda.py and modelling.py'
+    '''Creates settings.py from settings_template.py, to be used by eda.py and modelling.py
+    
+    Args
+        target (str): column to use as label for the prediction problem
+        data (pd.DataFrame): data to create settings for
+        CAT_FILL (str): value to set for blanks in string data
+        NUM_FILL (int): value to set for blanks in numerical data
+        SEED (int): number used to generate random numbers
+    Returns
+        None
+    '''
 
     features = list(set(data.columns)-{target})
     categorical_features = list(data[features].select_dtypes(include=['object']).columns)
@@ -49,13 +59,28 @@ SEED = {SEED}
     f.close()
 
 def filter(df_, by_ = ["col1 > 5"]):
-    'Runs list of filter strings sequentially as df.querys'
+    '''Runs list of filter strings sequentially as df.querys
+
+    Args
+        df_ (pd.DataFrame): data to filter on
+        by_ (list of str): filters to pass to df.query(), ordered by filtering order
+    Returns
+        df (pd.DataFrame): filtered df
+    '''
     df = df_.copy()
     for f in by_:
         df = df.query(f)
     return df
 
 def clip_outliers(data, p = 0.05):
+    '''Remove outliers by setting a floor and ceiling for numerical values based on top p% and bottom (1-p)%
+
+    Args
+        data (pd.Series): set of numbers to clip outliers on
+        p (float): percentile on which to clip
+    Returns
+        data (pd.Series): clipped series
+    '''
     p_lower = data.quantile(p)
     p_upper = data.quantile(1-p)
     data[data < p_lower] = p_lower
@@ -64,7 +89,13 @@ def clip_outliers(data, p = 0.05):
     return data
 
 def preprocessing_workflow(df_):
-    'Transforms raw df to sklearn pipeline-ready df'
+    '''Transforms raw df to sklearn pipeline-ready df
+    
+    Args
+        df_ (pd.DataFrame): raw dataset
+    Returns
+        df (pd.DataFrame): preprocessed data
+    '''
 
     import sys
     from importlib import reload
@@ -131,6 +162,10 @@ def preprocessing_workflow(df_):
     return df
 
 class Preprocess( BaseEstimator, TransformerMixin ):
+    '''Sklearn transformer that applies preprocessing_workflow()
+    
+    No need to edit, just add custom code to preprocessing_workflow
+    '''
     def __init__(self):
         pass
     
@@ -151,7 +186,18 @@ def preprocess(
     NUM_FILL = 0,
     SEED = 42
 ):
-    'Runs preprocessing_workflow() over input df and generates settings.py'
+    '''Runs preprocessing_workflow() over input df and generates settings.py
+    
+    Args
+        df (pd.DataFrame): raw data
+        target (str): column to use as label for the prediction problem
+        as_is (bool): if False, apply preprocessing steps and settings creation. if True, don't apply any preprocessing, just create settings.py
+        CAT_FILL (str): value to set for blanks in string data
+        NUM_FILL (int): value to set for blanks in numerical data
+        SEED (int): number used to generate random numbers
+    Returns
+        (pd.DataFrame): preprocessed data
+    '''
 
     _set(
         target = target,
