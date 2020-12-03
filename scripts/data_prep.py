@@ -3,6 +3,7 @@
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import Pipeline
+import os
 
 def _set(
     target,
@@ -50,10 +51,12 @@ NUM_FILL = {NUM_FILL}
 
 SEED = {SEED}
 '''
-
-    f0 = open('scripts/settings_template.py', 'r')
+    path = '/'.join(os.path.abspath(__file__).split('/')[:-1])
+    fname = os.path.join(path, 'settings_template.py')
+    f0 = open(fname, 'r')
     orig_text = f0.readlines()
-    f = open('scripts/settings.py', 'w')
+    fname2 = os.path.join(path, 'settings.py')
+    f = open(fname2, 'w')
     f.writelines(text)
     f.writelines(orig_text)
     f.close()
